@@ -14,10 +14,10 @@
 
 <div id="modal-container">
     <div class="modal-background">
-        <div class="modal">
+        <form class="modal" method="post" id="formUsername">
             <h2>Choisi un username</h2>
-            <input type="text" name="username">
-        </div>
+            <input type="text" name="username" id="inputUsername">
+        </form>
     </div>
 </div>
 
@@ -201,7 +201,17 @@
 <script src="assets/js/index.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script>
-    var socket = io();
+    const socket = io();
+
+    let formUsername = document.querySelector('#formUsername');
+    let inputUsername = document.querySelector('#inputUsername');
+
+    formUsername.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        let usernameWanted = inputUsername.value;
+        socket.emit('setUsername', usernameWanted);
+    });
 </script>
 
 </body>

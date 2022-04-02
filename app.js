@@ -34,7 +34,12 @@ app.get('/params/:name', (req, res) => {
 
 // IO
 io.on('connection', socket => {
-  console.log('user connected');
+  console.log('user connected: ' + socket.id);
+
+  // Déconnexion de l'utilisateur
+  socket.on('disconnect', () => {
+    console.log('user disconnected: ' + socket.id);
+  });
 });
 
 // Lancement de l'application
