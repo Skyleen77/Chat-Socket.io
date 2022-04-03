@@ -5,7 +5,7 @@ let socketio = require('socket.io');
 let morgan = require('morgan');
 let config = require('./config');
 
-// Variables globales
+// Constantes
 const app = express();
 const server = http.Server(app);
 const io = socketio(server);
@@ -13,6 +13,9 @@ const port = config.express.port;
 const options = {
   root: __dirname + '/views'
 }
+
+// Variables globales
+let usernames = [];
 
 // Middlewares
 app.use(express.static(options.root))
@@ -36,9 +39,40 @@ app.get('/params/:name', (req, res) => {
 io.on('connection', socket => {
   console.log('user connected: ' + socket.id);
 
+  // Traitement pour l'assignation d'un username
+  socket.on('setUsername', (usernameWanted) => {
+    
+    // Traitement string
+    usernameWanted = usernameWanted.trim();
+
+    // Vérification de l'unicité de l'username
+    let usernameTaken = false;
+    for (let socketid in usernames) {
+      if(usernames[socketid] == usernameWanted) {
+        usernameTaken = true;
+      }
+    }
+
+    let timeFakeLoading = 1000;
+    setTimeout(() => {
+      // Traitement final
+      if(usernameTaken) {
+        socket.emit('rejetUsername', usernameWanted);
+      } else {
+        usernames[socket.id] = usernameWanted;
+        socket.emit('acceptUsername', usernameWanted);
+      }
+    }, timeFakeLoading)
+
+  });
+
   // Déconnexion de l'utilisateur
   socket.on('disconnect', () => {
     console.log('user disconnected: ' + socket.id);
+    if(usernames[socket.id]) {
+      delete usernames[socket.id];
+      console.log('username deleted');
+    }
   });
 });
 

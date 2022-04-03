@@ -8,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/loader.css">
 </head>
 
 <body class="modal-active">
@@ -17,6 +18,7 @@
         <form class="modal" method="post" id="formUsername">
             <h2>Choisi un username</h2>
             <input type="text" name="username" id="inputUsername">
+            <div class="loader hidden" id="loaderUsername"></div>
         </form>
     </div>
 </div>
@@ -203,14 +205,33 @@
 <script>
     const socket = io();
 
+    // Variables globales
     let formUsername = document.querySelector('#formUsername');
     let inputUsername = document.querySelector('#inputUsername');
+    let loaderUsername = document.querySelector('#loaderUsername');
+    let username;
 
+    // Envoi de l'username
     formUsername.addEventListener('submit', (e) => {
         e.preventDefault();
-
         let usernameWanted = inputUsername.value;
         socket.emit('setUsername', usernameWanted);
+
+        inputUsername.classList.add('hidden');
+        loaderUsername.classList.remove('hidden');
+    });
+
+    // Réponses assignation username
+    socket.on('acceptUsername', (_username) => {
+        username = _username;
+        closeModal();
+    });
+    socket.on('rejetUsername', (_username) => {
+        inputUsername.value = '';
+        inputUsername.setAttribute('placeholder', `L'username ${_username} est déjà pris.`)
+    
+        inputUsername.classList.remove('hidden');
+        loaderUsername.classList.add('hidden');
     });
 </script>
 
