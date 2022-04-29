@@ -27,7 +27,6 @@ app.get('/', (req, res) => {
 });
 
 app.get('/home', (req, res) => {
-  console.log();
   res.sendFile('index.html', options);
 });
 
@@ -59,8 +58,11 @@ io.on('connection', socket => {
       if(usernameTaken) {
         socket.emit('rejetUsername', usernameWanted);
       } else {
+        socket.join('users');
         usernames[socket.id] = usernameWanted;
-        socket.emit('acceptUsername', usernameWanted);
+        let justUsernames = getUsernames();
+        socket.emit('acceptUsername', usernameWanted, justUsernames);
+        socket.to('users').emit('newUser', usernameWanted, justUsernames);
       }
     }, timeFakeLoading)
 
@@ -71,7 +73,7 @@ io.on('connection', socket => {
     console.log('user disconnected: ' + socket.id);
     if(usernames[socket.id]) {
       delete usernames[socket.id];
-      console.log('username deleted');
+      socket.to('users').emit('leftUser', getUsernames());
     }
   });
 });
@@ -80,3 +82,12 @@ io.on('connection', socket => {
 server.listen(port, () => {
   console.log(`Serveur started on port ${port}`);
 });
+
+// Renvoie un array contenant les usernames sans index
+function getUsernames() {
+    let users = [];
+    for(let socketid in usernames) {
+        users.push(usernames[socketid]);
+    }
+    return users;
+}
